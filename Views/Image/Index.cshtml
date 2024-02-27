@@ -1,0 +1,119 @@
+﻿<style>
+    /* Style for the pop-up container */
+    .popup-container {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        border: 1px solid #ccc;
+        padding: 20px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+    }
+
+    /* Style for the close button */
+    .close-button {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        cursor: pointer;
+    }
+</style>
+
+<!-- Button to trigger the pop-up -->
+<div class="container">
+    <form action="/Image/InputImage" method="post" enctype="multipart/form-data">
+        <div class="form-control">
+            <label class="form-label">Input Image</label>
+            <input type="button" value="Select Image" onclick="togglePopup()" />
+        </div>
+        <div id="formImageContainer"><span class="close-button" onclick="togglePopup()">X</span></div> <!-- Container for selected image -->
+        <input type="hidden" id="ID" name="Id"/>
+        <input type="hidden" id="selectedImageInput" name="selectedImage" /> <!-- Hidden input to store selected image URL -->
+        <button class="btn btn-info mt-1" type="submit">Submit</button>
+    </form>
+</div>
+<!-- Pop-up container -->
+<div id="popup" class="popup-container">
+    <!-- Close button -->
+    <span class="close-button" onclick="togglePopup()">X</span>
+    <!-- Content of the pop-up -->
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">Image Gallery</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">Add Image</button>
+        </li>
+    </ul>
+    <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+            <p>All the images</p>
+        </div>
+        <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+            <form action="/Image/InsertImage" method="post" enctype="multipart/form-data">
+                <label for="image">Input Image:</label>
+                <input type="file" name="ImageUrl" id="image" />
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Function to toggle the visibility of the pop-up and fetch images
+    // Function to toggle the visibility of the pop-up and fetch images
+    function togglePopup() {
+        // Clear previous images
+        document.getElementById("home").innerHTML = "";
+        // Fetch images
+        fetch("https://localhost:7146/Image/GetImages")
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                const imageDat = data.value;
+                imageDat.forEach(image => {
+                    const trimmedUrl = image.imageUrl.replace('C:\\Users\\Dell\\source\\repos\\Upload_Image_From_Gallery\\Image_Gallery\\wwwroot\\', '');
+                    const img = document.createElement('img');
+                    img.src = trimmedUrl;
+                    img.alt = image.imageName;
+                    img.style.width = '200px';
+                    img.style.height = 'auto';
+                    // Set input field value when image is clicked
+                    img.onclick = function () {
+                        //debugger;
+                        // Create a new image element to display the selected image in the form
+                        const selectedImg = document.createElement('img');
+                        selectedImg.src = img.src;
+                        selectedImg.style.width = '20%'; // Adjust styling as needed
+                        selectedImg.style.height = 'auto'; // Adjust styling as needed
+
+                        // Clear previous selected image (if any) and append the new one
+                        const formImageContainer = document.getElementById('formImageContainer');
+                        formImageContainer.innerHTML = '';
+                        formImageContainer.appendChild(selectedImg);
+
+                        // Set the value of a hidden input field with the URL of the selected image
+                        document.getElementById("selectedImageInput").value = image.imageUrl;
+                        document.getElementById("ID").value = image.id;
+                    };
+                    document.getElementById("home").appendChild(img);
+                });
+            })
+            .catch(error => {
+                console.log(error, "Error");
+            });
+
+        // Toggle pop-up visibility
+        var popup = document.getElementById('popup');
+        if (popup.style.display === 'none' || popup.style.display === '') {
+            popup.style.display = 'block';
+        } else {
+            popup.style.display = 'none';
+        }
+    }
+
+
+</script>
